@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -45,6 +46,40 @@ namespace Resin.IO
                 _writer.Flush();
                 _writer.Close();
                 _writer.Dispose();
+            }
+        }
+    }
+
+    public class TrieReader : IDisposable
+    {
+        private readonly StreamReader _reader;
+
+        public TrieReader(string containerId, string directory)
+        {
+            var fileName = Path.Combine(directory, containerId + ".tc");
+            var fs = File.Open(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+            _reader = new StreamReader(fs, Encoding.Unicode);
+        }
+
+        public void Step(Dictionary<char, Trie> children)
+        {
+            var line = _reader.ReadLine();
+            if (!string.IsNullOrEmpty(line))
+            {
+                var id = line.Substring(0, line.IndexOf(':'));
+                var val = line[0];
+                var eow = int.Parse(line.Substring(id.Length + 1)) == 1;
+                var depth = Int32.Parse(id.Substring(id.IndexOf('.') + 1));
+                children.Add(val, new Trie(val, depth, eow));
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_reader != null)
+            {
+                _reader.Close();
+                _reader.Dispose();
             }
         }
     }

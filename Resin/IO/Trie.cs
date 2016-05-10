@@ -65,6 +65,13 @@ namespace Resin.IO
             }
         }
 
+        public Trie(char val, int depth, bool eow)
+        {
+            _value = val;
+            _depth = depth;
+            _eow = eow;
+        }
+
         public bool TryResolveChild(char c, int depth, out Trie trie)
         {
             Trie t;
@@ -94,16 +101,23 @@ namespace Resin.IO
             foreach (var child in ResolveChildren())
             {
                 var tmp = state.ReplaceAt(child.Depth, child.Val);
-                if (Levenshtein.Distance(word, tmp) <= edits)
+                if (child.Eow)
                 {
-                    if (child.Eow)
-                    {
-                        var potential = tmp.Substring(0, child.Depth + 1);
-                        var distance = Levenshtein.Distance(word, potential);
-                        if (distance <= edits) words.Add(new Word { Value = potential, Distance = distance });
-                    }
-                    child.SimScan(word, tmp, edits, words);
+                    var potential = tmp.Substring(0, child.Depth + 1);
+                    var distance = Levenshtein.Distance(word, potential);
+                    if (distance <= edits) words.Add(new Word { Value = potential, Distance = distance });
                 }
+                child.SimScan(word, tmp, edits, words);
+                //if (Levenshtein.Distance(word, tmp) <= edits)
+                //{
+                //    if (child.Eow)
+                //    {
+                //        var potential = tmp.Substring(0, child.Depth + 1);
+                //        var distance = Levenshtein.Distance(word, potential);
+                //        if (distance <= edits) words.Add(new Word { Value = potential, Distance = distance });
+                //    }
+                //    child.SimScan(word, tmp, edits, words);
+                //}
             }
         }
 

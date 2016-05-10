@@ -1,12 +1,73 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using NUnit.Framework;
 using Resin;
+using Resin.IO;
 
 namespace Tests
 {
     [TestFixture]
     public class AnalyzerTests
     {
+        [Test, Ignore]
+        public void Test2()
+        {
+            var dic = new Dictionary<string, int>();
+            for (int i = 0; i < 10000000; i++)
+            {
+                dic.Add(Path.GetRandomFileName(), i);
+            }
+            var timer = new Stopwatch();
+            timer.Start();
+            using (var fs = File.Open(Path.Combine(Setup.Dir, "xxxxxxxxxxx.txt"), FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                FileBase.Serializer.Serialize(fs, dic);
+            }
+            Trace.WriteLine("serialized in " + timer.Elapsed);
+            timer.Restart();
+            using (var fs = File.Open(Path.Combine(Setup.Dir, "xxxxxxxxxxx.txt"), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                var obj = (Dictionary<string, int>)FileBase.Serializer.Deserialize(fs);
+                //Assert.AreEqual(10000000, obj.Count);
+            }
+            Trace.WriteLine("deserialized in " + timer.Elapsed);
+        }
+
+
+        [Test, Ignore]
+        public void Test()
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            using (var fs = File.Open(Path.Combine(Setup.Dir, "yyyyyyyyyyy.txt"), FileMode.Create, FileAccess.Write, FileShare.Read))
+            using (var w = new StreamWriter(fs, Encoding.Unicode))
+            {
+                for (int i = 0; i < 10000000; i++)
+                {
+                    w.WriteLine("{0}:{1}", i, Guid.NewGuid());
+                }
+            }
+            Trace.WriteLine("wrote in " + timer.Elapsed);
+            timer.Restart();
+
+            using (var fs = File.Open(Path.Combine(Setup.Dir, "yyyyyyyyyyy.txt"), FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var w = new StreamReader(fs, Encoding.Unicode))
+            {
+                string line;
+                while ((line = w.ReadLine()) != null)
+                {
+                    var interestingPart = line.Substring(0, line.IndexOf(':'));
+                    var id = int.Parse(interestingPart);
+                    if(id==9999999) Trace.WriteLine(id);
+                }
+            }
+            Trace.WriteLine("read in " + timer.Elapsed);
+        }
+
         [Test]
         public void Stopwords()
         {
