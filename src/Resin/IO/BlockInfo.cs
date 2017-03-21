@@ -1,5 +1,8 @@
-﻿namespace Resin.IO
+﻿using System;
+
+namespace Resin.IO
 {
+    [Serializable]
     public struct BlockInfo
     {
         public long Position;
@@ -10,5 +13,6 @@
             Position = position;
             Length = length;
         }
+        public static BlockInfo MinValue { get { return new BlockInfo(0, 0);} }
     }
 }

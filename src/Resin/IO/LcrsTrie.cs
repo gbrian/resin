@@ -12,6 +12,8 @@ namespace Resin.IO
     {
         public LcrsTrie RightSibling { get; set; }
         public LcrsTrie LeftChild { get; set; }
+        public BlockInfo PostingsInfo { get; set; }
+        
         public char Value { get; private set; }
         public bool EndOfWord { get; private set; }
 
@@ -22,6 +24,11 @@ namespace Resin.IO
         }
 
         public void Add(string path)
+        {
+            Add(path, BlockInfo.MinValue);
+        }
+
+        public void Add(string path, BlockInfo postingsInfo)
         {
             if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("word");
 
@@ -43,9 +50,13 @@ namespace Resin.IO
                 }
             }
 
-            if (!eow)
+            if (eow)
             {
-                node.Add(path.Substring(1));
+                PostingsInfo = postingsInfo;
+            }
+            else
+            {
+                node.Add(path.Substring(1), postingsInfo);
             }
         }
 

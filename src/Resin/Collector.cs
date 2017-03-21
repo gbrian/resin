@@ -21,7 +21,6 @@ namespace Resin
         private static readonly ILog Log = LogManager.GetLogger(typeof(Collector));
         private readonly IxInfo _ix;
         private readonly IScoringScheme _scorer;
-        private readonly BPlusTree<Term, DocumentPosting[]> _postingDb; 
 
         public Collector(string directory, IxInfo ix, IScoringScheme scorer)
         {
@@ -36,8 +35,6 @@ namespace Resin
 
             dbOptions.FileName = Path.Combine(directory, string.Format("{0}-{1}.{2}", _ix.Name, "pos", "db"));
             dbOptions.ReadOnly = true;
-
-            _postingDb = new BPlusTree<Term, DocumentPosting[]>(dbOptions);
 
             Log.DebugFormat("init collector in {0}", initTimer.Elapsed);
         }
@@ -145,13 +142,9 @@ namespace Resin
 
         private IEnumerable<DocumentPosting> GetPostings(Term term)
         {
-            DocumentPosting[] postings;
-            if (_postingDb.TryGetValue(term, out postings))
+            using (var reader = new PostingsReader(new FileStream(Path.Combine(_directory, _ix.Name + ".pos"), FileMode.Open, FileAccess.Read, FileShare.Read)))
             {
-                foreach (var posting in postings)
-                {
-                    yield return posting;
-                }
+                
             }
         }
 
